@@ -1,0 +1,70 @@
+package visionrange;
+
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
+
+import mil.nga.tiff.Rasters;
+
+/*
+ * 该类仅仅画拼接图
+ */
+public class DrawSplice {
+	
+	/**
+	 * 该方法仅仅绘制未经处理的拼接图像
+	 * @return
+	 */
+	public static Image createSplice() {
+		
+		Image image = new Image(null, "D:/empty.png");
+		GC gc = new GC(image);
+		Rectangle bounds = image.getBounds();
+		
+		// 进行16个文件的拼接，未经兰伯特变换
+		double heightestHeight = 3600; // 给出最大高程
+		int transUnit = 200; // 设置单位平移量
+		int widthIndexOfBlock = 0; // 横向起始绘图点
+		int heightIndexOfBlock = 0; // 纵向起始绘图点
+		int widthOfBlock = 6000; // 地形块宽度
+		int heightOfBlock = 6000; // 地形块高度
+		int xIndexFile = 58; // 地形文件x起始
+		int yIndexFile = 4; // 地形文件y起始，注意如果这里数字在个位数，下面的代码就不需要改
+		
+		
+		for(int k=0; k<4; k++) {
+			for(int m=0; m<4; m++) {
+				
+				String X = String.valueOf(xIndexFile+k);
+				String Y = "0"+String.valueOf(yIndexFile+m);
+				
+				Rasters rasters = GeoPlot.getRasters( GeoPlot.getTiffFile(X, Y) );
+				
+				for(int i=widthIndexOfBlock; i<(widthOfBlock+widthIndexOfBlock); i += 30) {
+					for(int j=heightIndexOfBlock; j<(heightOfBlock+heightIndexOfBlock); j += 30) {
+						// 首先获得i，j点的高度值
+						double height = rasters.getPixel(i, j)[0].doubleValue();
+						// 得到i，j点的高度值配色
+						RGB rgb = ColorSet.setRGBColor(height, heightestHeight);
+						Color color = new Color(null,rgb);
+						gc.setForeground(color);
+						gc.drawPoint(i/30 + k*transUnit, j/30 + m*transUnit);
+					}
+				}
+				// 画横向分割线
+				Color color = new Color(null,0,0,0);
+				gc.setForeground(color);
+				gc.setLineStyle(3);
+				gc.drawLine(0, m*200, 800, m*200);
+			}
+			// 画纵向分割线
+			gc.setLineStyle(3);
+			gc.drawLine(k*200, 0, k*200, 800);
+		}
+		gc.dispose();
+		return image;
+	}
+	
+}

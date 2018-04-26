@@ -1,0 +1,150 @@
+// 在SWT的canvas中绘图的代码示例
+// 该段源代码是绘制某一个方向雷达视域范围的代码
+// 原始位置是在ioWindow中的IOWindow类中
+
+canvas.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent e) {
+				Image image = DrawDEM.createDemMap();
+				//Image image = DrawTilting.createThetaMap();
+				e.gc.drawImage(image, 0, 0, 800, 800, 0, 0, 800, 800);
+				//保存图片
+				//ImportImage.saveImage("D:\\new2.bmp", image, "bmp");
+				Image radar = new Image(display, "D:/timg.jpg");
+				e.gc.drawImage(radar, 0, 0, radar.getBounds().width, radar.getBounds().height, 390, 390, 20, 20);
+				
+				// 绘制距离，50公里、100公里、150公里、200公里、250公里，用细黄色线标出并且指示距离
+				Color colorRange = new Color(display, 255, 255, 0); 
+				e.gc.setForeground(colorRange);
+				e.gc.setLineStyle(2);
+				e.gc.setLineWidth(2);
+				e.gc.drawOval(400-50000/625, 400-50000/625, 50000/625*2, 50000/625*2);
+				e.gc.drawOval(400-100000/625, 400-100000/625, 100000/625*2, 100000/625*2);
+				e.gc.drawOval(400-150000/625, 400-150000/625, 150000/625*2, 150000/625*2);
+				e.gc.drawOval(400-200000/625, 400-200000/625, 200000/625*2, 200000/625*2);
+				e.gc.drawOval(400-250000/625, 400-250000/625, 250000/625*2, 250000/625*2);
+				
+				Color colorText = new Color(display, 255, 255, 255); 
+				e.gc.setForeground(colorText);
+				e.gc.drawText("50km", 400-50000/625, 400-8, 3);
+				e.gc.drawText("100km", 400-100000/625, 400-8, 3);
+				e.gc.drawText("150km", 400-150000/625, 400-8, 3);
+				e.gc.drawText("200km", 400-200000/625, 400-8, 3);
+				e.gc.drawText("250km", 400-250000/625, 400-8, 3);
+				
+				e.gc.setLineStyle(1);
+				
+				// 测试在2000米高度层搜索]0,360[
+				
+				int pos[] = new int[722];
+				Color color = new Color(display, 255, 0, 0); 
+				e.gc.setForeground(color);
+				double lat0 = 38.0589416667;
+				double lon0 = 106.2028888889;
+				String srtmName = GeoPlot.getTiffMom(lat0, lon0);
+				File srtmFile = GeoPlot.getTiffFile2(srtmName);
+				Rasters rasters = GeoPlot.getRasters(srtmFile);
+				
+				// 再打开该文件周围的8个文件一起传入，目的是让绘图速度可以快一点
+				// 左上角
+				String srtmName1 = GeoPlot.getTiffMom(lat0+5, lon0-5);
+				File srtmFile1 = GeoPlot.getTiffFile2(srtmName1);
+				Rasters rasters1 = GeoPlot.getRasters(srtmFile1);
+				
+				// 正上
+				String srtmName2 = GeoPlot.getTiffMom(lat0+5, lon0);
+				File srtmFile2 = GeoPlot.getTiffFile2(srtmName2);
+				Rasters rasters2 = GeoPlot.getRasters(srtmFile2);
+				
+				// 右上角
+				String srtmName3 = GeoPlot.getTiffMom(lat0+5, lon0+5);
+				File srtmFile3 = GeoPlot.getTiffFile2(srtmName3);
+				Rasters rasters3 = GeoPlot.getRasters(srtmFile3);
+				
+				// 正右
+				String srtmName5 = GeoPlot.getTiffMom(lat0, lon0+5);
+				File srtmFile5 = GeoPlot.getTiffFile2(srtmName5);
+				Rasters rasters5 = GeoPlot.getRasters(srtmFile5);
+				
+				// 右下角
+				String srtmName7 = GeoPlot.getTiffMom(lat0-5, lon0+5);
+				File srtmFile7 = GeoPlot.getTiffFile2(srtmName7);
+				Rasters rasters7 = GeoPlot.getRasters(srtmFile7);
+				
+				// 正下
+				String srtmName4 = GeoPlot.getTiffMom(lat0-5, lon0);
+				File srtmFile4 = GeoPlot.getTiffFile2(srtmName4);
+				Rasters rasters4 = GeoPlot.getRasters(srtmFile4);
+				
+				// 左下角
+				String srtmName6 = GeoPlot.getTiffMom(lat0-5, lon0-5);
+				File srtmFile6 = GeoPlot.getTiffFile2(srtmName6);
+				Rasters rasters6 = GeoPlot.getRasters(srtmFile6);
+				
+				// 正左
+				String srtmName8 = GeoPlot.getTiffMom(lat0, lon0-5);
+				File srtmFile8 = GeoPlot.getTiffFile2(srtmName8);
+				Rasters rasters8 = GeoPlot.getRasters(srtmFile8);
+				
+				int xLast = 0;
+				int yLast = 0;
+				ActionDistance.findActionDistanceInfo(38.0589416667, 106.2028888889, 1147, 0, 250000, 2000, 90, srtmName, srtmFile, rasters,
+						srtmName1, srtmName2, srtmName3, srtmName4, srtmName5, srtmName6, srtmName7, srtmName8,
+						rasters1, rasters2, rasters3, rasters4, rasters5, rasters6, rasters7, rasters8);
+				double posx0 = ActionDistance.actionLambertX;
+				double posy0 = ActionDistance.actionLambertY;
+				// 以下x和y是在画布中画点的具体位置，即画布中的像素点位置，范围是0到800
+				int posX0 = (int) Math.round( (posx0/625) );
+				int posY0 = (int) Math.round( (-posy0/625) );
+				if(posX0<0) {
+					xLast = 400 + posX0;
+				}
+				else {
+					xLast = 400 + posX0;
+				}
+				
+				if(posY0<0) {
+					yLast = 400 + posY0;
+				}
+				else {
+					yLast = 400 + posY0;
+				}
+				//pos[0] = xLast;
+				//pos[1] = yLast;
+				for(double i=1; i<=360; i+=1) {
+					ActionDistance.findActionDistanceInfo(38.0589416667, 106.2028888889, 1147, i, 250000, 2000, 90, srtmName, srtmFile, rasters,
+							srtmName1, srtmName2, srtmName3, srtmName4, srtmName5, srtmName6, srtmName7, srtmName8,
+							rasters1, rasters2, rasters3, rasters4, rasters5, rasters6, rasters7, rasters8);
+					double posx = ActionDistance.actionLambertX;
+					double posy = ActionDistance.actionLambertY;
+					// 以下x和y是在画布中画点的具体位置，即画布中的像素点位置，范围是0到800
+					int posX = (int) Math.round( (posx/625) );
+					int posY = (int) Math.round( (-posy/625) );
+					int x = 0;
+					int y = 0;
+					if(posX<0) {
+						x = 400 + posX;
+					}
+					else {
+						x = 400 + posX;
+					}
+					
+					if(posY<0) {
+						y = 400 + posY;
+					}
+					else {
+						y = 400 + posY;
+					}
+					//pos[2*i] = x;
+					//pos[2*i+1] = y;
+					e.gc.setLineWidth(5);
+					e.gc.drawLine(x, y, xLast, yLast);
+					xLast = x;
+					yLast = y;
+					//e.gc.drawRectangle(x, y, 10, 10);
+				}
+				//e.gc.fillPolygon(pos);
+				
+				e.gc.dispose();
+				image.dispose();
+			}
+		});

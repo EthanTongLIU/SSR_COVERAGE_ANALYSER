@@ -1,0 +1,194 @@
+package visionrange;
+
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
+
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
+
+import mil.nga.tiff.Rasters;
+import tools.*;
+
+public class DrawTilting {
+
+	/**
+	 * 该方法根据遮蔽角大小绘制一定范围内的遮蔽角
+	 * @return
+	 */
+	public static Image createThetaMap() {
+		Image image = new Image(null, "D:/empty.png");
+		GC gc = new GC(image);
+		Rectangle bounds = image.getBounds();
+		
+		/*
+		 * 绘图外部参数
+		 */
+		double heightestHeight = 4000; // 给出最大高程
+		int xIndexFile = 58; // 地形文件x起始
+		int yIndexFile = 4; // 地形文件y起始，注意如果这里数字在个位数，下面的代码就不需要改
+		// 滨海国际机场的经纬度以及海拔高度
+		//double latRef = 39.134859580095124;
+		//double lonRef = 117.36001219134846;
+		//兰伯特坐标系中心经纬度
+		//double latRef = 40;
+		//double lonRef = 110;
+		double latRef = 38.0589416667;
+		double lonRef = 106.2028888889;
+		//兰伯特坐标系中心的高度
+		Rasters rasters0 = GeoPlot.getRasters( GeoPlot.getTiffFile("59", "05") );
+		//double hRef = rasters0.getPixel(0, 0)[0].doubleValue();
+		double hRef = 100; //滨海机场的高度
+		double R = 250000; // 绘图范围的实际半径，单位m，外部传入	
+		
+		/*
+		 * 绘图内部参数
+		 */
+		int range = 400; // 绘图半径，外部传入
+		int di = (int) Math.floor(R/50000); // 点搜索步长
+		if(di==0) {
+			di = 1; 
+		}
+		double compressCoef = R/(bounds.width/2.0); // 压缩因子
+		int transUnit = 200; // 设置单位平移量
+		int widthIndexOfBlock = 0; // 横向起始绘图点
+		int heightIndexOfBlock = 0; // 纵向起始绘图点
+		int widthOfBlock = 6000; // 地形块宽度
+		int heightOfBlock = 6000; // 地形块高度
+		// 点搜索起始点经纬度
+		double latPointIndex = 60.0-(yIndexFile-1)*5.0;
+		double lonPointIndex = (xIndexFile-1)*5.0-180.0;
+		int ox = (int) Math.floor(bounds.width/2); // 绘图坐标系中心x
+		int oy = (int) Math.floor(bounds.height/2); // 绘图坐标系中心y
+		
+		
+		for(int k=0; k<2; k++) {
+			for(int m=0; m<2; m++) {
+				
+				String X = String.valueOf(xIndexFile+k);
+				String Y = "0"+String.valueOf(yIndexFile+m);
+				
+				Rasters rasters = GeoPlot.getRasters( GeoPlot.getTiffFile(X, Y) );
+
+				for(int i=widthIndexOfBlock; i<(widthOfBlock+widthIndexOfBlock); i += di) {
+					for(int j=heightIndexOfBlock; j<(heightOfBlock+heightIndexOfBlock); j += di) {
+			
+						// 计算每一个点的遮蔽角的大小
+						double lat = GeoPlot.getLat(j+m*6000, latPointIndex);
+						double lon = GeoPlot.getLon(i+k*6000, lonPointIndex);
+						double h = rasters.getPixel(i, j)[0].doubleValue();
+						double theta = Tilting.getTilting(lat, lon, h, latRef, lonRef, hRef);
+						
+						// 进行单点lambert变换
+						Point2D.Double pos=new Point2D.Double();
+						pos = GeoMethod.lambert(lat, lon, latRef, lonRef);
+						
+						// 计算绘图坐标系中的相对位置，缩放系数是20000/400 = 50
+						int posX = (int) Math.round( (pos.x/compressCoef) );
+						int posY = (int) Math.round( (-pos.y/compressCoef) );
+						
+						// 计算绘图坐标系中的绝对位置
+						int x = 0;
+						int y = 0;
+						if(posX<0) {
+							x = ox + posX;
+						}
+						else {
+							x = ox + posX;
+						}
+						
+						if(posY<0) {
+							y = oy + posY;
+						}
+						else {
+							y = oy + posY;
+						}
+						
+						
+						// 得到i，j点的高度值配色
+						RGB rgb = ColorSet.setAngleRGB(theta, 90);
+						Color color = new Color(null, rgb); // 如果直接在canvas中绘图，需要将null修改为display
+						gc.setForeground(color);
+						
+						// 控制绘图范围，以绘图原点为中心，设置矩形的大小，进而绘至矩形图
+						
+						if(Math.abs(x-ox)<=range && Math.abs(y-oy)<=range) {
+							gc.drawPoint(x, y);
+						}
+						
+						// 绘制圆形图
+						/*
+						if( (Math.pow(Math.abs(x-400), 2) + Math.pow(Math.abs(y-400), 2)) <= Math.pow(400, 2)) {
+							gc.drawPoint(x, y);
+						}
+						*/
+						
+					}
+				}
+			}
+		}
+		
+		gc.dispose();
+		return image;
+	}
+	
+	/**
+	 * 该方法计算一个方向上的遮蔽角
+	 */
+	public static void getTilting() {
+		double dir = 150; //搜索方向
+		double latRef = 39.134859580095124;
+		double lonRef = 117.36001219134846;
+		
+		int i0 = GeoPlot.getX(lonRef, 115);
+		int j0 = GeoPlot.getY(latRef, 40);
+		
+		Vector vecTil = new Vector();
+		Vector vecDis = new Vector();
+		
+		Rasters rasters = GeoPlot.getRasters( GeoPlot.getTiffFile("60", "05") );
+		double hRef = rasters.getPixel(i0, j0)[0].doubleValue();
+		
+		for(int i=i0; i<i0+10; i++) {
+			for(int j=j0; j<j0+10-1; j++) {
+				double lat1 = GeoPlot.getLat(j, 40);
+				double lon1 = GeoPlot.getLon(i, 115);
+				CoordinateDisposer.setAzimuth(lat1, lon1, latRef, lonRef);
+				double alpha1 = CoordinateDisposer.getAzimuth();
+				double h1 = rasters.getPixel(i, j)[0].doubleValue();
+				System.out.print(alpha1 + " ");
+				
+				
+				double lat2 = GeoPlot.getLat(j+1, 40);
+				double lon2 = GeoPlot.getLon(i, 115);
+				CoordinateDisposer.setAzimuth(lat2, lon2, latRef, lonRef);
+				double alpha2 = CoordinateDisposer.getAzimuth();
+				double h2 = rasters.getPixel(i, j+1)[0].doubleValue();
+				System.out.println(alpha2);
+				
+				
+				
+				if(dir<=alpha2 && dir>=alpha1) {
+					double til1 = Tilting.getTilting(lat1, lon1, h1, latRef, lonRef, hRef);
+					double til2 = Tilting.getTilting(lat2, lon2, h2, latRef, lonRef, hRef);
+					vecTil.add( (til1+til2)/2 );
+					// 进行单点lambert变换
+					Point2D.Double pos=new Point2D.Double();
+					pos = GeoMethod.lambert(lat1, lon1, latRef, lonRef);
+					vecDis.add(Math.sqrt(Math.pow(pos.x, 2) + Math.pow(pos.y, 2)));
+				}
+			}
+		}
+		
+		System.out.println(vecTil.size());
+		for(int i=0; i<vecTil.size(); i++) {
+			System.out.println(vecTil.get(i));
+		}
+		
+	}
+	
+}

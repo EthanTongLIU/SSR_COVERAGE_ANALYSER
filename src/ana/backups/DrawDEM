@@ -1,0 +1,130 @@
+// 绘制地形图的旧版类
+
+package visionrange;
+
+import java.awt.geom.Point2D;
+
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
+
+import mil.nga.tiff.Rasters;
+import tools.GeoMethod;
+
+public class DrawDEM {
+	/**
+	 * 该绘制地形图算法已被淘汰，不再使用
+	 */
+	
+	
+	/**
+	 * 该方法在图片上绘制DEM地形图
+	 * @return
+	 */
+	public static Image createDemMap() {
+		Image image = new Image(null, "D:/empty.png");
+		
+		GC gc = new GC(image);
+		Rectangle bounds = image.getBounds();
+		
+		/*
+		 * 以下设置绘图外部参数
+		 */
+		double heightestHeight = 5500; // 给出最大高程，外部传入
+		// 兰伯特坐标系中心（雷达站心），外部传入
+		//double latRef = 39.134859580095124; // 滨海国际机场的经纬度
+		//double lonRef = 117.36001219134846;
+		double latRef = 38.0589416667;
+		double lonRef = 106.2028888889;
+		double R = 250000; // 绘图范围的实际半径，单位m，外部传入
+		int xIndexFile = 57; // 地形文件x起始，外部传入
+		int yIndexFile = 4; // 地形文件y起始，注意如果这里数字在个位数，下面的代码就不需要改，外部传入
+		
+		
+		/*
+		 * 以下为绘图内部参数
+		 */
+		int range = 400; // 绘图半径
+		int di = (int) Math.floor(R/50000); // 点搜索步长
+		if(di==0) {
+			di = 1; 
+		}
+		double compressCoef = R/(bounds.width/2.0); // 压缩因子
+		int transUnit = 200; // 设置单位平移量
+		int widthIndexOfBlock = 0; // 横向起始绘图点
+		int heightIndexOfBlock = 0; // 纵向起始绘图点
+		int widthOfBlock = 6000; // 地形块宽度
+		int heightOfBlock = 6000; // 地形块高度
+		// 点搜索起始点经纬度
+		double latPointIndex = 60.0-(yIndexFile-1)*5.0;
+		double lonPointIndex = (xIndexFile-1)*5.0-180.0;
+		int ox = (int) Math.floor(bounds.width/2); // 绘图坐标系中心x
+		int oy = (int) Math.floor(bounds.height/2); // 绘图坐标系中心y
+		
+		for(int k=0; k<2; k++) {
+			for(int m=0; m<2; m++) {
+				
+				String X = String.valueOf(xIndexFile+k);
+				String Y = "0"+String.valueOf(yIndexFile+m);
+				
+				Rasters rasters = GeoPlot.getRasters( GeoPlot.getTiffFile(X, Y) );
+				
+
+				for(int i=widthIndexOfBlock; i<(widthOfBlock+widthIndexOfBlock); i += di) {
+					for(int j=heightIndexOfBlock; j<(heightOfBlock+heightIndexOfBlock); j += di) {
+						Point2D.Double pos=new Point2D.Double();
+						// 进行每一个点的lambert变换
+						// GeoPlot.getLat(j+2000+m*6000, 35)里面的第一个参数是实际点的位置，即每一个区块
+						// 有6000x6000点，它找的就是实际有多少点
+						pos = GeoMethod.lambert(GeoPlot.getLat(j+m*6000, latPointIndex), GeoPlot.getLon(i+k*6000, lonPointIndex), latRef, lonRef);
+						
+						// 以下x和y是在画布中画点的具体位置，即画布中的像素点位置，范围是0到800
+						int posX = (int) Math.round( (pos.x/compressCoef) );
+						int posY = (int) Math.round( (-pos.y/compressCoef) );
+						// System.out.println(posX+" "+posY);
+						int x = 0;
+						int y = 0;
+						if(posX<0) {
+							x = ox + posX;
+						}
+						else {
+							x = ox + posX;
+						}
+						
+						if(posY<0) {
+							y = oy + posY;
+						}
+						else {
+							y = oy + posY;
+						}
+						
+						// 首先获得i，j点的高度值
+						double height = rasters.getPixel(i, j)[0].doubleValue();
+						// 得到i，j点的高度值配色
+						RGB rgb = ColorSet.setRGBColor(height, heightestHeight);
+						Color color = new Color(null, rgb); // 如果直接在canvas中绘图，需要将null修改为display
+						gc.setForeground(color);
+						
+						// 控制绘图范围，以绘图原点为中心，设置矩形的大小，进而绘至矩形图
+						
+						if(Math.abs(x-ox)<=range && Math.abs(y-oy)<=range) {
+							gc.drawPoint(x, y);
+						}
+						
+						// 绘制圆形图
+						/*
+						if( (Math.pow(Math.abs(x-400), 2) + Math.pow(Math.abs(y-400), 2)) <= Math.pow(400, 2)) {
+							gc.drawPoint(x, y);
+						}
+						*/
+						
+					}
+				}
+			}
+		}
+		gc.dispose();
+		return image;
+	}
+}

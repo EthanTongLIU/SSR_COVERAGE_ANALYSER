@@ -1,0 +1,50 @@
+// DrawSingleLambert
+
+package visionrange;
+
+import java.awt.geom.Point2D;
+
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
+
+import mil.nga.tiff.Rasters;
+import tools.GeoMethod;
+
+public class DrawSingleLambert {
+
+	/**
+	 * 该方法仅仅绘制单一Tiff文件经兰伯特变换后的图像
+	 * @return
+	 */
+	public static Image createSingleTiffImage() {
+		
+		Image image = new Image(null, "D:/empty.png");
+		GC gc = new GC(image);
+		Rectangle bounds = image.getBounds();
+		
+		// 进行单文件60_05的lambert变换
+		// 将所有点都变成对应的经纬度，再进行兰伯特变换，得到其和参考点在平面上的相对距离
+		Rasters rasters = GeoPlot.getRasters( GeoPlot.getTiffFile("60", "05") );
+		
+		for(int i=0; i<6001; i+=10) {
+			for(int j=0; j<6001; j+=10) {
+				Point2D.Double pos=new Point2D.Double();
+				// 进行每一个点的lambert变换
+				pos = GeoMethod.lambert(GeoPlot.getLat(j, 40), GeoPlot.getLon(i, 115), 40, 115);
+				int x = (int) Math.round( (pos.x/892) );
+				int y = (int) Math.round( Math.abs( (-pos.y/892) ) );
+				
+				double height = rasters.getPixel(i, j)[0].doubleValue();
+				RGB rgb = ColorSet.setRGBColor(height, 3500);
+				Color color = new Color(null,rgb);
+				gc.setForeground(color);
+				gc.drawPoint(x, y);
+			}
+		}
+		gc.dispose();
+		return image;
+	}
+}

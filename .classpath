@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-9">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.osgi_3.12.50.v20170928-1321.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.osgi_3.12.50.v20170928-1321.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.core.commands_3.9.0.v20170530-1048.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.core.commands_3.9.0.v20170530-1048.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.equinox.common_3.9.0.v20170207-1454.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.equinox.common_3.9.0.v20170207-1454.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.equinox.registry_3.7.0.v20170222-1344.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.equinox.registry_3.7.0.v20170222-1344.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.core.runtime_3.13.0.v20170207-1030.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.core.runtime_3.13.0.v20170207-1030.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.text_3.6.100.v20170203-0814.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.text_3.6.100.v20170203-0814.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.swt.win32.win32.x86_64_3.106.2.v20171129-0543.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.swt.win32.win32.x86_64_3.106.2.v20171129-0543.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.jface_3.13.2.v20171022-1656.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.jface_3.13.2.v20171022-1656.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.jface.text_3.12.1.v20171114-1359.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.jface.text_3.12.1.v20171114-1359.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.ui.workbench_3.110.1.v20170704-1208.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.ui.workbench_3.110.1.v20170704-1208.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/com.ibm.icu_58.2.0.v20170418-1837.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/com.ibm.icu_58.2.0.v20170418-1837.jar"/>
+	<classpathentry kind="lib" path="C:/Users/刘通/.p2/pool/plugins/org.eclipse.ui.forms_3.7.101.v20170815-1446.jar" sourcepath="C:/Users/刘通/.p2/pool/plugins/org.eclipse.ui.forms_3.7.101.v20170815-1446.jar"/>
+	<classpathentry kind="lib" path="MilNgaTiff.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
