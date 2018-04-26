@@ -30,5 +30,5 @@
 
 项目源码已全部上传至Github
 
-<https://github.com/EthanTongLIU/RadarCoverageAnalyser>
+<https://github.com/EthanTongLIU/SSR_COVERAGE_ANALYSER>
 
